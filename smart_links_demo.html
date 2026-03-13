@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SLM Level 1 Clipboard Demo (Plain + HTML)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; line-height: 1.35; }
+    .wrap { max-width: 900px; }
+    label { display: block; font-weight: 600; margin-top: 14px; }
+    input[type="text"] { width: 100%; padding: 10px 12px; font-size: 14px; margin-top: 6px; box-sizing: border-box; }
+    .small { color: #555; font-size: 12px; }
+
+    .slm-row { margin-top: 18px; padding: 12px; border: 1px solid #ddd; border-radius: 10px; display: flex; align-items: center; gap: 10px; }
+    .slm-link { flex: 1; min-width: 0; }
+    .slm-link a { text-decoration: underline; }
+    .slm-context { color: #333; }
+    .slm-context:empty { display: none; }
+
+    .icon-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 8px;
+      border: 1px solid #ddd; background: #fff; cursor: pointer;
+    }
+    .icon-btn:hover { background: #f7f7f7; }
+    .icon-btn:active { transform: translateY(1px); }
+    .icon-btn:focus-visible { outline: 3px solid #000; outline-offset: 2px; }
+
+    .status { margin-top: 10px; }
+    .status.ok { color: #0a7a2f; }
+    .status.warn { color: #8a5a00; }
+    .status.err { color: #b00020; }
+
+    .preview { margin-top: 18px; padding: 12px; border: 1px solid #ddd; border-radius: 10px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; white-space: pre-wrap; }
+
+    /* Custom context menu */
+    .menu {
+      position: fixed;
+      z-index: 9999;
+      min-width: 240px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      padding: 6px;
+      display: none;
+    }
+    .menu button {
+      width: 100%;
+      text-align: left;
+      padding: 10px 10px;
+      border: 0;
+      background: transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .menu button:hover { background: #f2f2f2; }
+    .menu .sep {
+      height: 1px;
+      background: #eee;
+      margin: 6px 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>SLM Level 1 “Smart Link” demo (Plain text + HTML)</h1>
+    <p class="small">
+      Enter URL, anchor text, and optional context. The page renders a Level 1-conformant Smart Link with a copy button.
+      Right-click the Smart Link for additional copy options.
+    </p>
+
+    <div>
+      <label for="url">URL</label>
+      <input id="url" type="text" placeholder="https://example.com/workitems/2676014" />
+    </div>
+
+    <div>
+      <label for="anchor">Anchor text (ID)</label>
+      <input id="anchor" type="text" placeholder="Task 2676014" />
+    </div>
+
+    <div>
+      <label for="context">Context text (description, optional)</label>
+      <input id="context" type="text" placeholder="Create pipeline to fetch Helm chart and add it to git" />
+    </div>
+
+    <!-- Rendered Smart Link + copy icon button -->
+    <div id="slmRow" class="slm-row" aria-label="Smart Link row">
+      <div class="slm-link" id="slmLinkContainer">
+        <a id="slmAnchor" href="#" target="_blank" rel="noopener noreferrer">Task 2676014</a>
+        <span id="slmContext" class="slm-context"></span>
+      </div>
+
+      <button id="copyBtn" class="icon-btn" type="button" aria-label="Copy Smart Link" title="Copy Smart Link">
+        <!-- Simple copy icon (inline SVG) -->
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1z"></path>
+          <path d="M18 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H10V7h8v14z"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+
+    <div class="preview">
+      <strong>Clipboard payload preview</strong>
+      <p class="small">Plain text (always includes URL):</p>
+      <div id="plainPreview" class="mono"></div>
+
+      <p class="small">HTML (for rich paste destinations):</p>
+      <div id="htmlPreview" class="mono"></div>
+    </div>
+
+    <p class="small">
+      Notes: Multi-format clipboard writing typically requires a secure context (HTTPS or localhost) and a user gesture.
+      If multi-format write is unavailable, the demo falls back to plain-text copy.
+    </p>
+  </div>
+
+  <!-- Custom context menu -->
+  <div id="menu" class="menu" role="menu" aria-label="Smart Link menu">
+    <button id="menuCopySmart" type="button" role="menuitem">Copy Smart Link</button>
+    <button id="menuCopyPlain" type="button" role="menuitem">Copy as plain text</button>
+    <div class="sep" role="separator"></div>
+    <button id="menuCopyId" type="button" role="menuitem">Copy ID</button>
+    <button id="menuCopyDesc" type="button" role="menuitem">Copy description</button>
+    <button id="menuCopyUrl" type="button" role="menuitem">Copy URL</button>
+  </div>
+
+  <script>
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function normalizeUrl(url) {
+      return String(url || "").trim();
+    }
+
+    function buildPayloads({ url, anchor, context }) {
+      const u = normalizeUrl(url);
+      const a = String(anchor || "").trim();
+      const c = String(context || "").trim();
+
+      // Plain text MUST include the URL. Separator is an example (" -- ").
+      const plain = c ? `${a}: ${c} -- ${u}` : `${a} -- ${u}`;
+
+      // HTML: anchor text only in <a>, context outside.
+      const htmlAnchorText = escapeHtml(a);
+      const htmlHref = escapeHtml(u);
+      const htmlContext = c ? `: ${escapeHtml(c)}` : "";
+      const html = `<a href="${htmlHref}">${htmlAnchorText}</a>${htmlContext}`;
+
+      return { plain, html, url: u, anchor: a, context: c };
+    }
+
+    function setStatus(message, kind) {
+      const el = document.getElementById("status");
+      el.textContent = message;
+      el.className = `status ${kind || ""}`.trim();
+    }
+
+    function isValidUrl(u) {
+      try { new URL(u); return true; } catch { return false; }
+    }
+
+    async function copySmartLinkMultiFormat({ plain, html }) {
+      if (navigator.clipboard && window.ClipboardItem && navigator.clipboard.write) {
+        const item = new ClipboardItem({
+          "text/plain": new Blob([plain], { type: "text/plain" }),
+          "text/html": new Blob([html], { type: "text/html" }),
+        });
+        await navigator.clipboard.write([item]);
+        return { mode: "multi-format (plain+html)" };
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(plain);
+        return { mode: "plain-text-only" };
+      }
+
+      const ta = document.createElement("textarea");
+      ta.value = plain;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      ta.style.top = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+
+      const ok = document.execCommand && document.execCommand("copy");
+      document.body.removeChild(ta);
+      if (!ok) throw new Error("Clipboard write not supported.");
+      return { mode: "plain-text-only (legacy)" };
+    }
+
+    async function copyPlainTextOnly(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return { mode: "plain-text-only" };
+      }
+
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      ta.style.top = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+
+      const ok = document.execCommand && document.execCommand("copy");
+      document.body.removeChild(ta);
+      if (!ok) throw new Error("Clipboard write not supported.");
+      return { mode: "plain-text-only (legacy)" };
+    }
+
+    function updateUI() {
+      const url = document.getElementById("url").value;
+      const anchor = document.getElementById("anchor").value;
+      const context = document.getElementById("context").value;
+
+      const u = normalizeUrl(url);
+      const a = String(anchor || "").trim();
+      const c = String(context || "").trim();
+
+      const aEl = document.getElementById("slmAnchor");
+      const cEl = document.getElementById("slmContext");
+
+      if (!a) {
+        aEl.textContent = "(enter anchor text)";
+        aEl.href = "#";
+        aEl.setAttribute("aria-disabled", "true");
+      } else {
+        aEl.textContent = a;
+        aEl.removeAttribute("aria-disabled");
+        aEl.href = isValidUrl(u) ? u : "#";
+      }
+
+      cEl.textContent = c ? `: ${c}` : "";
+
+      if (!a || !u || !isValidUrl(u)) {
+        document.getElementById("plainPreview").textContent = !a
+          ? "(enter anchor text)"
+          : "(enter a valid URL, including https://)";
+        document.getElementById("htmlPreview").textContent = !a
+          ? "(enter anchor text)"
+          : "(enter a valid URL, including https://)";
+        return;
+      }
+
+      const { plain, html } = buildPayloads({ url: u, anchor: a, context: c });
+      document.getElementById("plainPreview").textContent = plain;
+      document.getElementById("htmlPreview").textContent = html;
+    }
+
+    // Context menu
+    const menu = document.getElementById("menu");
+    let lastPayloads = null;
+
+    function hideMenu() {
+      menu.style.display = "none";
+      menu.dataset.open = "false";
+    }
+
+    function showMenuAt(x, y) {
+      const padding = 8;
+      menu.style.display = "block";
+      menu.dataset.open = "true";
+
+      const rect = menu.getBoundingClientRect();
+      const maxX = window.innerWidth - rect.width - padding;
+      const maxY = window.innerHeight - rect.height - padding;
+
+      const left = Math.max(padding, Math.min(x, maxX));
+      const top = Math.max(padding, Math.min(y, maxY));
+
+      menu.style.left = `${left}px`;
+      menu.style.top = `${top}px`;
+    }
+
+    function computeCurrentPayloadsOrNull() {
+      const url = normalizeUrl(document.getElementById("url").value);
+      const anchor = String(document.getElementById("anchor").value || "").trim();
+      const context = String(document.getElementById("context").value || "").trim();
+      if (!url || !anchor || !isValidUrl(url)) return null;
+      return buildPayloads({ url, anchor, context });
+    }
+
+    document.addEventListener("click", (e) => {
+      if (menu.dataset.open === "true" && !menu.contains(e.target)) hideMenu();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") hideMenu();
+    });
+    window.addEventListener("scroll", hideMenu, { passive: true });
+    window.addEventListener("resize", hideMenu);
+
+    // Wire up events
+    document.getElementById("url").addEventListener("input", updateUI);
+    document.getElementById("anchor").addEventListener("input", updateUI);
+    document.getElementById("context").addEventListener("input", updateUI);
+
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      try {
+        const payloads = computeCurrentPayloadsOrNull();
+        if (!payloads) {
+          setStatus("Please enter a valid URL (including https://) and anchor text.", "err");
+          return;
+        }
+        const result = await copySmartLinkMultiFormat({ plain: payloads.plain, html: payloads.html });
+        setStatus(`Copied Smart Link (${result.mode}).`, result.mode.includes("multi-format") ? "ok" : "warn");
+      } catch (e) {
+        setStatus(`Copy failed: ${e?.message || String(e)}`, "err");
+      }
+    });
+
+    const slmRow = document.getElementById("slmRow");
+    slmRow.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      const payloads = computeCurrentPayloadsOrNull();
+      lastPayloads = payloads;
+      if (!payloads) {
+        setStatus("Please enter a valid URL (including https://) and anchor text.", "err");
+        return;
+      }
+      showMenuAt(e.clientX, e.clientY);
+    });
+
+    document.getElementById("menuCopySmart").addEventListener("click", async () => {
+      try {
+        hideMenu();
+        if (!lastPayloads) return;
+        const result = await copySmartLinkMultiFormat({ plain: lastPayloads.plain, html: lastPayloads.html });
+        setStatus(`Copied Smart Link (${result.mode}).`, result.mode.includes("multi-format") ? "ok" : "warn");
+      } catch (e) {
+        setStatus(`Copy failed: ${e?.message || String(e)}`, "err");
+      }
+    });
+
+    document.getElementById("menuCopyPlain").addEventListener("click", async () => {
+      try {
+        hideMenu();
+        if (!lastPayloads) return;
+        const result = await copyPlainTextOnly(lastPayloads.plain);
+        setStatus(`Copied anchor text, description, and URL (${result.mode}).`, "ok");
+      } catch (e) {
+        setStatus(`Copy failed: ${e?.message || String(e)}`, "err");
+      }
+    });
+
+    document.getElementById("menuCopyId").addEventListener("click", async () => {
+      try {
+        hideMenu();
+        if (!lastPayloads) return;
+        const result = await copyPlainTextOnly(lastPayloads.anchor);
+        setStatus(`Copied ID (${result.mode}).`, "ok");
+      } catch (e) {
+        setStatus(`Copy failed: ${e?.message || String(e)}`, "err");
+      }
+    });
+
+    document.getElementById("menuCopyDesc").addEventListener("click", async () => {
+      try {
+        hideMenu();
+        if (!lastPayloads) return;
+        const desc = lastPayloads.context || "";
+        const result = await copyPlainTextOnly(desc);
+        setStatus(`Copied description (${result.mode}).`, "ok");
+      } catch (e) {
+        setStatus(`Copy failed: ${e?.message || String(e)}`, "err");
+      }
+    });
+
+    document.getElementById("menuCopyUrl").addEventListener("click", async () => {
+      try {
+        hideMenu();
+        if (!lastPayloads) return;
+        const result = await copyPlainTextOnly(lastPayloads.url);
+        setStatus(`Copied URL (${result.mode}).`, "ok");
+      } catch (e) {
+        setStatus(`Copy failed: ${e?.message || String(e)}`, "err");
+      }
+    });
+
+    // Initial defaults
+    document.getElementById("url").value = "https://example.com/workitems/2676014";
+    document.getElementById("anchor").value = "Task 2676014";
+    document.getElementById("context").value = "Create pipeline to fetch Helm chart and add it to git";
+    updateUI();
+  </script>
+</body>
+</html>
