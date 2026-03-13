@@ -11,7 +11,7 @@
     input[type="text"] { width: 100%; padding: 10px 12px; font-size: 14px; margin-top: 6px; box-sizing: border-box; }
     .small { color: #555; font-size: 12px; }
 
-    .slm-row { margin-top: 18px; padding: 12px; border: 1px solid #ddd; border-radius: 10px; display: flex; align-items: center; gap: 10px; }
+    .slm-row { margin-top: 6px; padding: 10px 12px; border: 1px solid #ddd; display: flex; align-items: center; gap: 10px; }
     .slm-link { flex: 1; min-width: 0; }
     .slm-link a { text-decoration: underline; }
     .slm-context { color: #333; }
@@ -62,14 +62,31 @@
       background: #eee;
       margin: 6px 4px;
     }
+    .container {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .left {
+      text-align: left;
+    }
+
+    .right {
+      t
+    }
   </style>
 </head>
 <body>
+  <svg aria-hidden="true" style="position:absolute; width:0; height:0; overflow:hidden;">
+    <symbol id="icon-copy" viewBox="0 0 24 24">
+      <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1z"></path>
+      <path d="M18 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H10V7h8v14z"></path>
+    </symbol>
+  </svg>
   <div class="wrap">
     <h1>SLM Level 1 “Smart Link” demo (Plain text + HTML)</h1>
     <p class="small">
       Enter URL, anchor text, and optional description. The page renders an SLM Level 1-conformant Smart Link with a copy button.
-      Right-click the Smart Link for additional copy options.
     </p>
 
     <div>
@@ -86,25 +103,29 @@
       <label for="context">Context text (description, optional)</label>
       <input id="context" type="text" placeholder="Create pipeline to fetch Helm chart and add it to git" />
     </div>
-
-    <!-- Rendered Smart Link + copy icon button -->
-    <div id="slmRow" class="slm-row" aria-label="Smart Link row">
-      <div class="slm-link" id="slmLinkContainer">
-        <a id="slmAnchor" href="#" target="_blank" rel="noopener noreferrer">Task 2676014</a><!--
-        --><span id="slmContext" class="slm-context"></span>
+    <br/>
+    <div>
+      <label for="slmRow">Smart Link</label>
+      <!-- Rendered Smart Link + copy icon button -->
+      <div id="slmRow" class="slm-row" aria-label="Smart Link row">
+        <div class="slm-link" id="slmLinkContainer">
+          <a id="slmAnchor" href="#" target="_blank" rel="noopener noreferrer">Task 2676014</a><span id="slmContext" class="slm-context"></span>
+        </div>
+        <button id="copyBtn" class="icon-btn" type="button" aria-label="Copy Smart Link" title="Copy Smart Link">
+          <svg width="18" height="18" aria-hidden="true">
+            <use href="#icon-copy"></use>
+          </svg>
+        </button>
       </div>
-
-      <button id="copyBtn" class="icon-btn" type="button" aria-label="Copy Smart Link" title="Copy Smart Link">
-        <!-- Simple copy icon (inline SVG) -->
-        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1z"></path>
-          <path d="M18 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H10V7h8v14z"></path>
-        </svg>
-      </button>
+      <p class="small">
+        <div class="container">
+          <div class="left">Right-click the Smart Link for all copy options.</div>
+          <div class="right">Click the copy button (<svg width="14" height="14" aria-hidden="true" style="vertical-align: -2px;"><use href="#icon-copy"></use></svg>) to copy the Smart Link.</div>
+        </div>
+      </p>
     </div>
-
     <div id="status" class="status" role="status" aria-live="polite"></div>
-
+    <br/>
     <div class="preview">
       <strong>Clipboard payload preview</strong>
       <p class="small">Plain text (always includes URL):</p>
@@ -122,7 +143,7 @@
 
   <!-- Custom context menu -->
   <div id="menu" class="menu" role="menu" aria-label="Smart Link menu">
-    <button id="menuCopySmart" type="button" role="menuitem">Copy Smart Link</button>
+    <button id="menuCopySmart" type="button" role="menuitem">Copy Smart Link <svg width="14" height="14" aria-hidden="true" style="vertical-align: -2px;"><use href="#icon-copy"></use></svg></button>
     <div class="sep" role="separator"></div>
     <button id="menuCopyPlain" type="button" role="menuitem">Copy all as plain text</button>
     <button id="menuCopyId" type="button" role="menuitem">Copy ID</button>
