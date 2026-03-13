@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SLM Level 1 Clipboard Demo (Plain + HTML)</title>
+  <title>SLM Level 1 Demo (Plain + HTML)</title>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; line-height: 1.35; }
     .wrap { max-width: 900px; }
@@ -68,7 +68,7 @@
   <div class="wrap">
     <h1>SLM Level 1 “Smart Link” demo (Plain text + HTML)</h1>
     <p class="small">
-      Enter URL, anchor text, and optional context. The page renders a Level 1-conformant Smart Link with a copy button.
+      Enter URL, anchor text, and optional description. The page renders an SLM Level 1-conformant Smart Link with a copy button.
       Right-click the Smart Link for additional copy options.
     </p>
 
@@ -78,7 +78,7 @@
     </div>
 
     <div>
-      <label for="anchor">Anchor text (ID)</label>
+      <label for="anchor">Anchor text (record type &amp; ID)</label>
       <input id="anchor" type="text" placeholder="Task 2676014" />
     </div>
 
@@ -90,8 +90,8 @@
     <!-- Rendered Smart Link + copy icon button -->
     <div id="slmRow" class="slm-row" aria-label="Smart Link row">
       <div class="slm-link" id="slmLinkContainer">
-        <a id="slmAnchor" href="#" target="_blank" rel="noopener noreferrer">Task 2676014</a>
-        <span id="slmContext" class="slm-context"></span>
+        <a id="slmAnchor" href="#" target="_blank" rel="noopener noreferrer">Task 2676014</a><!--
+        --><span id="slmContext" class="slm-context"></span>
       </div>
 
       <button id="copyBtn" class="icon-btn" type="button" aria-label="Copy Smart Link" title="Copy Smart Link">
@@ -123,8 +123,8 @@
   <!-- Custom context menu -->
   <div id="menu" class="menu" role="menu" aria-label="Smart Link menu">
     <button id="menuCopySmart" type="button" role="menuitem">Copy Smart Link</button>
-    <button id="menuCopyPlain" type="button" role="menuitem">Copy as plain text</button>
     <div class="sep" role="separator"></div>
+    <button id="menuCopyPlain" type="button" role="menuitem">Copy all as plain text</button>
     <button id="menuCopyId" type="button" role="menuitem">Copy ID</button>
     <button id="menuCopyDesc" type="button" role="menuitem">Copy description</button>
     <button id="menuCopyUrl" type="button" role="menuitem">Copy URL</button>
