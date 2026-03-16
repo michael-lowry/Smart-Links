@@ -1,38 +1,179 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SLM Level 1 Demo (Plain + HTML)</title>
+  <title>SLM “Smart Links” Demo</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; line-height: 1.35; }
-    .wrap { max-width: 900px; }
-    label { display: block; font-weight: 600; margin-top: 14px; }
-    input[type="text"] { width: 100%; padding: 10px 12px; font-size: 14px; margin-top: 6px; box-sizing: border-box; }
-    .small { color: #555; font-size: 12px; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 24px;
+      line-height: 1.35;
+    }
 
-    .slm-row { margin-top: 6px; padding: 10px 12px; border: 1px solid #ddd; display: flex; align-items: center; gap: 10px; }
-    .slm-link { flex: 1; min-width: 0; }
-    .slm-link a { text-decoration: underline; }
-    .slm-context { color: #333; }
-    .slm-context:empty { display: none; }
+    .wrap {
+      max-width: 980px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-top: 14px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      margin-top: 6px;
+      box-sizing: border-box;
+    }
+
+    .small {
+      color: #555;
+      font-size: 12px;
+    }
+
+    details {
+      border: 0;
+    }
+
+    .slm-summary {
+      cursor: pointer;
+      font-weight: 800;
+      margin: 0 0 8px 0;
+    }
+
+    details>summary {
+      list-style: none;
+    }
+
+    details>summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .slm-summary::before {
+      content: "▾ ";
+    }
+
+    details:not([open])>.slm-summary::before {
+      content: "▸ ";
+    }
+
+    .section-box {
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 12px;
+      margin: 0;
+    }
+
+    .disabled-section {
+      opacity: 0.55;
+      filter: grayscale(35%);
+      background: #f7f7f7;
+    }
+
+    .disabled-section .section-box {
+      background: #f7f7f7;
+    }
+
+    .instructions {
+      text-align: right;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 820px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .slm-row {
+      margin-top: 10px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slm-link {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .slm-link a {
+      text-decoration: underline;
+    }
+
+    .slm-context {
+      color: #333;
+    }
+
+    .slm-context:empty {
+      display: none;
+    }
 
     .icon-btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 34px; height: 34px; border-radius: 8px;
-      border: 1px solid #ddd; background: #fff; cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: #fff;
+      cursor: pointer;
     }
-    .icon-btn:hover { background: #f7f7f7; }
-    .icon-btn:active { transform: translateY(1px); }
-    .icon-btn:focus-visible { outline: 3px solid #000; outline-offset: 2px; }
 
-    .status { margin-top: 10px; }
-    .status.ok { color: #0a7a2f; }
-    .status.warn { color: #8a5a00; }
-    .status.err { color: #b00020; }
+    .icon-btn:hover {
+      background: #f7f7f7;
+    }
 
-    .preview { margin-top: 18px; padding: 12px; border: 1px solid #ddd; border-radius: 10px; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; white-space: pre-wrap; }
+    .icon-btn:active {
+      transform: translateY(1px);
+    }
+
+    .icon-btn:focus-visible {
+      outline: 3px solid #000;
+      outline-offset: 2px;
+    }
+
+    .status {
+      margin-top: 10px;
+    }
+
+    .status.ok {
+      color: #0a7a2f;
+    }
+
+    .status.warn {
+      color: #8a5a00;
+    }
+
+    .status.err {
+      color: #b00020;
+    }
+
+    .preview {
+      margin-top: 18px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
 
     /* Custom context menu */
     .menu {
@@ -42,10 +183,11 @@
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
       padding: 6px;
       display: none;
     }
+
     .menu button {
       width: 100%;
       text-align: left;
@@ -56,81 +198,259 @@
       cursor: pointer;
       font-size: 14px;
     }
-    .menu button:hover { background: #f2f2f2; }
+
+    .menu button:hover {
+      background: #f2f2f2;
+    }
+
     .menu .sep {
       height: 1px;
       background: #eee;
       margin: 6px 4px;
     }
-    .container {
+
+    /* Hovercard */
+    .hovercard {
+      position: fixed;
+      z-index: 10000;
+      max-width: 440px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+      padding: 12px;
+      display: none;
+    }
+
+    .hc-row {
       display: flex;
-      justify-content: space-between;
+      gap: 12px;
     }
 
-    .left {
-      text-align: left;
+    .hc-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex: 0 0 auto;
     }
 
-    .right {
-      t
+    .hc-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .hc-body {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .hc-kv {
+      margin: 2px 0;
+    }
+
+    .hc-kv b {
+      font-weight: 700;
+    }
+
+    .hc-kv span {
+      word-break: break-word;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 2px 0 8px 0;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      display: inline-block;
+    }
+
+    .dot-circle {
+      border-radius: 999px;
+    }
+
+    .dot-square {
+      border-radius: 2px;
+    }
+
+    .status-symbol {
+      font-size: 14px;
+      line-height: 1;
     }
   </style>
 </head>
+
 <body>
+  <!-- SVG sprite -->
   <svg aria-hidden="true" style="position:absolute; width:0; height:0; overflow:hidden;">
     <symbol id="icon-copy" viewBox="0 0 24 24">
       <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1z"></path>
       <path d="M18 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H10V7h8v14z"></path>
     </symbol>
   </svg>
+
   <div class="wrap">
-    <h1>SLM Level 1 “Smart Link” demo (Plain text + HTML)</h1>
-    <p class="small">
-      Enter URL, anchor text, and optional description. The page renders an SLM Level 1-conformant Smart Link with a copy button.
-    </p>
+    <h1>SLM “Smart Links” demo</h1>
+    <p>This page demonstrates Structured Link Metadata, also known as <a
+        href="https://github.com/michael-lowry/Smart-Links/wiki/Smart-Links">Smart Links</a>.</p>
 
-    <div>
-      <label for="url">URL</label>
-      <input id="url" type="text" placeholder="https://example.com/workitems/2676014" />
+    <div style="margin: 14px 0; padding: 12px; border: 1px solid #ddd; border-radius: 12px;">
+      <div style="font-weight: 700; margin-bottom: 8px;">SLM level</div>
+      <label style="display:flex; align-items:center; gap:8px; font-weight: 600; margin: 6px 0;">
+        <input type="radio" name="slmLevel" value="0" checked />
+        Level 0 — semantic anchors
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; font-weight: 600; margin: 6px 0;">
+        <input type="radio" name="slmLevel" value="1" />
+        Level 1 — Copy-aware links
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; font-weight: 600; margin: 6px 0;">
+        <input type="radio" name="slmLevel" value="2" />
+        Level 2 — Embedded capsules
+      </label>
     </div>
 
-    <div>
-      <label for="anchor">Anchor text (record type &amp; ID)</label>
-      <input id="anchor" type="text" placeholder="Task 2676014" />
-    </div>
+    <details id="level0SectionDetails" open style="margin: 0;">
+      <summary class="slm-summary">SLM Level 0 — semantic anchors</summary>
+      <fieldset id="level0Section" class="section-box"
+        style="border: 1px solid #ddd; border-radius: 12px; padding: 12px; margin: 0;">
+        <p class="small">
+          Enter URL, anchor text, and optional description. Optionally add system/type/icon ref fields for the Level 2
+          capsule. The rendered Smart Link supports one-click copy and a right-click menu. Enable hovercard to preview
+          the
+          capsule.
+        </p>
+        <div class="grid">
+          <div>
+            <label for="url">URL</label>
+            <input id="url" type="text" placeholder="https://example.com/workitems/2676014" />
+          </div>
 
-    <div>
-      <label for="context">Context text (description, optional)</label>
-      <input id="context" type="text" placeholder="Create pipeline to fetch Helm chart and add it to git" />
-    </div>
-    <br/>
-    <div>
-      <label for="slmRow">Smart Link</label>
-      <!-- Rendered Smart Link + copy icon button -->
+          <div>
+            <label for="anchor">Anchor text (record type &amp; ID)</label>
+            <input id="anchor" type="text" placeholder="Task 2676014" />
+          </div>
+
+          <div style="grid-column: 1 / -1;">
+            <label for="context">Context text (description, optional)</label>
+            <input id="context" type="text" placeholder="Create pipeline to fetch Helm chart and add it to git" />
+          </div>
+        </div>
+      </fieldset>
+    </details>
+    <br />
+
+
+    <details id="level1SectionDetails" open style="margin: 0;">
+      <summary class="slm-summary">SLM Level 1 — Copy-aware links</summary>
+      <fieldset id="level1Section" class="section-box"
+        style="border: 1px solid #ddd; border-radius: 12px; padding: 12px; margin: 14px 0 0 0;">
+        <label class="small" style="margin:0; font-weight: 600; display:flex; align-items:center; gap:8px;">
+          <input id="enableCopyAction" type="checkbox" checked />
+          Enable <span style="font-style: italic;">Copy Smart Link</span> action
+        </label>
+
+        <div class="small" style="margin-top: 8px;">
+          The <span style="font-style: italic;">Copy Smart Link</span> action inserts into the clipboard representations
+          of the link in
+          both plain text and HTML, so links can be pasted consistently into email, chat, and documentation.
+        </div>
+      </fieldset>
+    </details>
+    <br />
+
+
+
+    <details id="level2SectionDetails" open style="margin: 0;">
+      <summary class="slm-summary">SLM Level 2 — Embedded capsules</summary>
+      <fieldset id="level2Section" class="section-box"
+        style="border: 1px solid #ddd; border-radius: 12px; padding: 12px; margin: 14px 0 0 0;">
+        <div class="grid">
+          <div>
+            <label for="system">System (optional)</label>
+            <input id="system" type="text" placeholder="azure-devops" />
+          </div>
+
+          <div>
+            <label for="type">Type (optional)</label>
+            <input id="type" type="text" placeholder="task" />
+          </div>
+
+
+          <div>
+            <label for="id">ID (optional)</label>
+            <input id="id" type="text" placeholder="2676014" />
+          </div>
+
+          <div>
+            <label for="status">Status (optional)</label>
+            <input id="status" type="text" placeholder="active | waiting | warning | error | success" />
+          </div>
+
+          <div style="grid-column: 1 / -1;">
+            <label for="icon_ref">Icon reference (optional)</label>
+            <input id="icon_ref" type="text"
+              placeholder="url:https://icons.veryicon.com/png/o/education-technology/big-data-ico-02/new-task.png" />
+          </div>
+
+          <div style="grid-column: 1 / -1;">
+            <label class="small" style="margin:0; font-weight: 600; display:flex; align-items:center; gap:8px;">
+              <input id="enableHovercard" type="checkbox" />
+              Enable hovercard
+            </label>
+          </div>
+        </div>
+      </fieldset>
+    </details>
+
+    <div style="margin-top: 14px;">
+      <br />
+      <label>Smart Link</label>
       <div id="slmRow" class="slm-row" aria-label="Smart Link row">
         <div class="slm-link" id="slmLinkContainer">
-          <a id="slmAnchor" href="#" target="_blank" rel="noopener noreferrer">Task 2676014</a><span id="slmContext" class="slm-context"></span>
+          <a id="slmAnchor" href="#" target="_blank" rel="noopener noreferrer">Task 2676014</a><span id="slmContext"
+            class="slm-context"></span>
         </div>
+
         <button id="copyBtn" class="icon-btn" type="button" aria-label="Copy Smart Link" title="Copy Smart Link">
           <svg width="18" height="18" aria-hidden="true">
             <use href="#icon-copy"></use>
           </svg>
         </button>
       </div>
-      <div class="container">
-        <!--div class="left"></div-->
-        <div id="status" class="status" role="status" aria-live="polite"></div>
-        <div class="right"><div class="small">Click the copy button (<svg width="14" height="14" aria-hidden="true" style="vertical-align: -2px;"><use href="#icon-copy"></use></svg>) to copy the Smart Link.<br/>
-        Right-click the Smart Link for all copy options.</div></div>
+
+      <p class="small instructions">
+        Click the copy icon (<svg width="14" height="14" aria-hidden="true" style="vertical-align: -2px;">
+          <use href="#icon-copy"></use>
+        </svg>) to copy the Smart Link.
+        <br />Right-click the Smart Link for additional copy options.
+      </p>
     </div>
-    <br/>
+
+    <div id="statusMsg" class="status" role="status" aria-live="polite"></div>
+
     <div class="preview">
       <strong>Clipboard payload preview</strong>
       <p class="small">Plain text (always includes URL):</p>
       <div id="plainPreview" class="mono"></div>
 
-      <p class="small">HTML (for rich paste destinations):</p>
+      <p class="small">HTML (includes data-smartlink capsule):</p>
       <div id="htmlPreview" class="mono"></div>
+
+      <div id="capsulePreviewWrap">
+        <p class="small">Capsule JSON (data-smartlink):</p>
+        <div id="capsulePreview" class="mono"></div>
+      </div>
     </div>
 
     <p class="small">
@@ -141,12 +461,22 @@
 
   <!-- Custom context menu -->
   <div id="menu" class="menu" role="menu" aria-label="Smart Link menu">
-    <button id="menuCopySmart" type="button" role="menuitem">Copy Smart Link <svg width="14" height="14" aria-hidden="true" style="vertical-align: -2px;"><use href="#icon-copy"></use></svg></button>
+    <button id="menuCopySmart" type="button" role="menuitem">Copy Smart Link</button>
     <div class="sep" role="separator"></div>
     <button id="menuCopyPlain" type="button" role="menuitem">Copy all as plain text</button>
     <button id="menuCopyId" type="button" role="menuitem">Copy ID</button>
     <button id="menuCopyDesc" type="button" role="menuitem">Copy description</button>
     <button id="menuCopyUrl" type="button" role="menuitem">Copy URL</button>
+  </div>
+
+  <!-- Hovercard -->
+  <div id="hovercard" class="hovercard" role="dialog" aria-label="Smart Link hovercard">
+    <div class="hc-row">
+      <div id="hcIcon" class="hc-icon" aria-hidden="true">
+        <img id="hcImg" alt="" />
+      </div>
+      <div id="hcBody" class="hc-body"></div>
+    </div>
   </div>
 
   <script>
@@ -159,11 +489,116 @@
         .replaceAll("'", "&#39;");
     }
 
-    function normalizeUrl(url) {
-      return String(url || "").trim();
+    function escapeAttrSingleQuoted(text) {
+      // For embedding JSON inside single-quoted HTML attribute values.
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("'", "&#39;");
     }
 
-    function buildPayloads({ url, anchor, context }) {
+    function normalizeUrl(url) { return String(url || "").trim(); }
+
+    function isValidUrl(u) {
+      try { new URL(u); return true; } catch { return false; }
+    }
+
+    function getSelectedLevel() {
+      const el = document.querySelector('input[name="slmLevel"]:checked');
+      return el ? parseInt(el.value, 10) : 0;
+    }
+
+    function isCopyEnabled() {
+      const level = getSelectedLevel();
+      const cb = document.getElementById("enableCopyAction");
+      return level >= 1 && !!cb && cb.checked;
+    }
+
+    function isCapsuleEnabled() {
+      return getSelectedLevel() >= 2;
+    }
+
+    function updateLevelUI() {
+      const level = getSelectedLevel();
+
+      const level1Details = document.getElementById("level1SectionDetails");
+      const level1Section = document.getElementById("level1Section");
+      const level2Details = document.getElementById("level2SectionDetails");
+      const level2Section = document.getElementById("level2Section");
+
+      const hoverCb = document.getElementById("enableHovercard");
+      const capsuleWrap = document.getElementById("capsulePreviewWrap");
+      const copyBtn = document.getElementById("copyBtn");
+
+      // Level 1 visual state (enabled at level >= 1)
+      if (level >= 1) {
+        if (level1Details) level1Details.classList.remove("disabled-section");
+        if (level1Section) level1Section.classList.remove("disabled-section");
+      } else {
+        if (level1Details) level1Details.classList.add("disabled-section");
+        if (level1Section) level1Section.classList.add("disabled-section");
+      }
+
+      // Level 2 visual + functional state (enabled at level >= 2)
+      if (level >= 2) {
+        if (level2Details) level2Details.classList.remove("disabled-section");
+        if (level2Section) level2Section.classList.remove("disabled-section");
+
+        Array.from(level2Section.querySelectorAll('input[type="text"]')).forEach(i => i.disabled = false);
+        if (hoverCb) hoverCb.disabled = false;
+        if (capsuleWrap) capsuleWrap.style.display = "";
+      } else {
+        if (level2Details) level2Details.classList.add("disabled-section");
+        if (level2Section) level2Section.classList.add("disabled-section");
+
+        Array.from(level2Section.querySelectorAll('input[type="text"]')).forEach(i => i.disabled = true);
+        if (hoverCb) { hoverCb.checked = false; hoverCb.disabled = true; }
+        if (capsuleWrap) capsuleWrap.style.display = "none";
+      }
+
+      // Copy button enable/disable (Level 1+ and checkbox)
+      if (copyBtn) {
+        if (isCopyEnabled()) {
+          copyBtn.disabled = false;
+          copyBtn.style.opacity = "1";
+          copyBtn.style.cursor = "pointer";
+        } else {
+          copyBtn.disabled = true;
+          copyBtn.style.opacity = "0.5";
+          copyBtn.style.cursor = "not-allowed";
+        }
+      }
+
+      updateUI();
+      hideHovercard();
+    }
+
+    function buildCapsule({ url, anchor, context, system, type, id, status, icon_ref }) {
+      const capsule = { version: "0.1" };
+
+      // Only include optional fields when provided (keeps capsule compact).
+      const sys = String(system || "").trim();
+      const typ = String(type || "").trim();
+
+      const idVal = String(id || "").trim();
+      const statusVal = String(status || "").trim();
+      const ir = String(icon_ref || "").trim();
+
+      if (sys) capsule.system = sys;
+      if (typ) capsule.type = typ;
+      if (idVal) capsule.id = idVal;
+      if (statusVal) capsule.status = statusVal; if (ir) capsule.icon_ref = ir;
+
+      // Core resource fields for demo
+      capsule.key = String(anchor || "").trim();            // compact identifier
+      if (context && String(context).trim()) capsule.title = String(context).trim();  // human title/description
+      capsule.url = normalizeUrl(url);
+
+      return capsule;
+    }
+
+    function buildPayloads({ url, anchor, context, system, type, id, status, icon_ref }) {
       const u = normalizeUrl(url);
       const a = String(anchor || "").trim();
       const c = String(context || "").trim();
@@ -171,23 +606,30 @@
       // Plain text MUST include the URL. Separator is an example (" -- ").
       const plain = c ? `${a}: ${c} -- ${u}` : `${a} -- ${u}`;
 
-      // HTML: anchor text only in <a>, context outside.
+      // HTML: anchor text only in <a>, context outside. Capsule is optional depending on level.
       const htmlAnchorText = escapeHtml(a);
       const htmlHref = escapeHtml(u);
       const htmlContext = c ? `: ${escapeHtml(c)}` : "";
-      const html = `<a href="${htmlHref}">${htmlAnchorText}</a>${htmlContext}`;
 
-      return { plain, html, url: u, anchor: a, context: c };
+      let capsuleObj = null;
+      let capsuleJson = "";
+
+      if (isCapsuleEnabled()) {
+        capsuleObj = buildCapsule({ url: u, anchor: a, context: c, system, type, id, status, icon_ref });
+        capsuleJson = JSON.stringify(capsuleObj);
+        const dataAttr = escapeAttrSingleQuoted(capsuleJson);
+        const html = `<a href="${htmlHref}" data-smartlink='${dataAttr}'>${htmlAnchorText}</a>${htmlContext}`;
+        return { plain, html, url: u, anchor: a, context: c, capsuleObj, capsuleJson };
+      } else {
+        const html = `<a href="${htmlHref}">${htmlAnchorText}</a>${htmlContext}`;
+        return { plain, html, url: u, anchor: a, context: c, capsuleObj, capsuleJson };
+      }
     }
 
     function setStatus(message, kind) {
-      const el = document.getElementById("status");
+      const el = document.getElementById("statusMsg");
       el.textContent = message;
       el.className = `status ${kind || ""}`.trim();
-    }
-
-    function isValidUrl(u) {
-      try { new URL(u); return true; } catch { return false; }
     }
 
     async function copySmartLinkMultiFormat({ plain, html }) {
@@ -199,12 +641,10 @@
         await navigator.clipboard.write([item]);
         return { mode: "multi-format (plain+html)" };
       }
-
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(plain);
         return { mode: "plain-text-only" };
       }
-
       const ta = document.createElement("textarea");
       ta.value = plain;
       ta.setAttribute("readonly", "");
@@ -214,7 +654,6 @@
       document.body.appendChild(ta);
       ta.select();
       ta.setSelectionRange(0, ta.value.length);
-
       const ok = document.execCommand && document.execCommand("copy");
       document.body.removeChild(ta);
       if (!ok) throw new Error("Clipboard write not supported.");
@@ -226,7 +665,6 @@
         await navigator.clipboard.writeText(text);
         return { mode: "plain-text-only" };
       }
-
       const ta = document.createElement("textarea");
       ta.value = text;
       ta.setAttribute("readonly", "");
@@ -236,106 +674,297 @@
       document.body.appendChild(ta);
       ta.select();
       ta.setSelectionRange(0, ta.value.length);
-
       const ok = document.execCommand && document.execCommand("copy");
       document.body.removeChild(ta);
       if (!ok) throw new Error("Clipboard write not supported.");
       return { mode: "plain-text-only (legacy)" };
     }
 
-    function updateUI() {
-      const url = document.getElementById("url").value;
-      const anchor = document.getElementById("anchor").value;
-      const context = document.getElementById("context").value;
-
-      const u = normalizeUrl(url);
-      const a = String(anchor || "").trim();
-      const c = String(context || "").trim();
-
-      const aEl = document.getElementById("slmAnchor");
-      const cEl = document.getElementById("slmContext");
-
-      if (!a) {
-        aEl.textContent = "(enter anchor text)";
-        aEl.href = "#";
-        aEl.setAttribute("aria-disabled", "true");
-      } else {
-        aEl.textContent = a;
-        aEl.removeAttribute("aria-disabled");
-        aEl.href = isValidUrl(u) ? u : "#";
-      }
-
-      cEl.textContent = c ? `: ${c}` : "";
-
-      if (!a || !u || !isValidUrl(u)) {
-        document.getElementById("plainPreview").textContent = !a
-          ? "(enter anchor text)"
-          : "(enter a valid URL, including https://)";
-        document.getElementById("htmlPreview").textContent = !a
-          ? "(enter anchor text)"
-          : "(enter a valid URL, including https://)";
-        return;
-      }
-
-      const { plain, html } = buildPayloads({ url: u, anchor: a, context: c });
-      document.getElementById("plainPreview").textContent = plain;
-      document.getElementById("htmlPreview").textContent = html;
-    }
-
-    // Context menu
-    const menu = document.getElementById("menu");
-    let lastPayloads = null;
-
-    function hideMenu() {
-      menu.style.display = "none";
-      menu.dataset.open = "false";
-    }
-
-    function showMenuAt(x, y) {
-      const padding = 8;
-      menu.style.display = "block";
-      menu.dataset.open = "true";
-
-      const rect = menu.getBoundingClientRect();
-      const maxX = window.innerWidth - rect.width - padding;
-      const maxY = window.innerHeight - rect.height - padding;
-
-      const left = Math.max(padding, Math.min(x, maxX));
-      const top = Math.max(padding, Math.min(y, maxY));
-
-      menu.style.left = `${left}px`;
-      menu.style.top = `${top}px`;
-    }
-
     function computeCurrentPayloadsOrNull() {
       const url = normalizeUrl(document.getElementById("url").value);
       const anchor = String(document.getElementById("anchor").value || "").trim();
       const context = String(document.getElementById("context").value || "").trim();
+
+      const system = String(document.getElementById("system").value || "").trim();
+      const type = String(document.getElementById("type").value || "").trim();
+      const idVal = String(document.getElementById("id").value || "").trim();
+      const statusVal = String(document.getElementById("status").value || "").trim();
+      const icon_ref = String(document.getElementById("icon_ref").value || "").trim();
+
       if (!url || !anchor || !isValidUrl(url)) return null;
-      return buildPayloads({ url, anchor, context });
+      return buildPayloads({ url, anchor, context, system, type, id: idVal, status: statusVal, icon_ref });
     }
 
-    document.addEventListener("click", (e) => {
-      if (menu.dataset.open === "true" && !menu.contains(e.target)) hideMenu();
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") hideMenu();
-    });
-    window.addEventListener("scroll", hideMenu, { passive: true });
-    window.addEventListener("resize", hideMenu);
+    function updateUI() {
+      const url = normalizeUrl(document.getElementById("url").value);
+      const anchor = String(document.getElementById("anchor").value || "").trim();
+      const context = String(document.getElementById("context").value || "").trim();
+      const system = String(document.getElementById("system").value || "").trim();
+      const type = String(document.getElementById("type").value || "").trim();
+      const idVal = String(document.getElementById("id").value || "").trim();
+      const statusVal = String(document.getElementById("status").value || "").trim();
+      const icon_ref = String(document.getElementById("icon_ref").value || "").trim();
 
-    // Wire up events
-    document.getElementById("url").addEventListener("input", updateUI);
-    document.getElementById("anchor").addEventListener("input", updateUI);
-    document.getElementById("context").addEventListener("input", updateUI);
+      const aEl = document.getElementById("slmAnchor");
+      const cEl = document.getElementById("slmContext");
+
+      if (!anchor) {
+        aEl.textContent = "(enter anchor text)";
+        aEl.href = "#";
+        aEl.setAttribute("aria-disabled", "true");
+        aEl.removeAttribute("data-smartlink");
+      } else {
+        aEl.textContent = anchor;
+        aEl.removeAttribute("aria-disabled");
+        aEl.href = isValidUrl(url) ? url : "#";
+      }
+
+      cEl.textContent = context ? `: ${context}` : "";
+
+      if (!anchor || !url || !isValidUrl(url)) {
+        document.getElementById("plainPreview").textContent = !anchor
+          ? "(enter anchor text)"
+          : "(enter a valid URL, including https://)";
+        document.getElementById("htmlPreview").textContent = !anchor
+          ? "(enter anchor text)"
+          : "(enter a valid URL, including https://)";
+        document.getElementById("capsulePreview").textContent = "";
+        aEl.removeAttribute("data-smartlink");
+        return;
+      }
+
+      const payloads = buildPayloads({ url, anchor, context, system, type, id: idVal, status: statusVal, icon_ref });
+      document.getElementById("plainPreview").textContent = payloads.plain;
+      document.getElementById("htmlPreview").textContent = payloads.html;
+      if (isCapsuleEnabled()) {
+        document.getElementById("capsulePreview").textContent = payloads.capsuleJson;
+        aEl.setAttribute("data-smartlink", payloads.capsuleJson);
+      } else {
+        document.getElementById("capsulePreview").textContent = "";
+        aEl.removeAttribute("data-smartlink");
+      }
+    }
+
+    // ---------------- Context menu ----------------
+    const menu = document.getElementById("menu");
+    let lastPayloads = null;
+
+    function hideMenu() { menu.style.display = "none"; menu.dataset.open = "false"; }
+    function showMenuAt(x, y) {
+      const padding = 8;
+      menu.style.display = "block";
+      menu.dataset.open = "true";
+      const rect = menu.getBoundingClientRect();
+      const maxX = window.innerWidth - rect.width - padding;
+      const maxY = window.innerHeight - rect.height - padding;
+      menu.style.left = `${Math.max(padding, Math.min(x, maxX))}px`;
+      menu.style.top = `${Math.max(padding, Math.min(y, maxY))}px`;
+    }
+
+    document.addEventListener("click", (e) => { if (menu.dataset.open === "true" && !menu.contains(e.target)) hideMenu(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") { hideMenu(); hideHovercard(); } });
+    window.addEventListener("scroll", () => { hideMenu(); hideHovercard(); }, { passive: true });
+    window.addEventListener("resize", () => { hideMenu(); hideHovercard(); });
+
+    // ---------------- Hovercard ----------------
+    const hovercard = document.getElementById("hovercard");
+    const hcBody = document.getElementById("hcBody");
+    const hcIcon = document.getElementById("hcIcon");
+    const hcImg = document.getElementById("hcImg");
+
+    function labelForKey(k) {
+      const map = {
+        version: "Version",
+        system: "System",
+        type: "Type",
+        id: "ID",
+        status: "Status",
+        icon_ref: "Icon ref",
+        key: "Key",
+        title: "Title",
+        url: "URL"
+      };
+      if (map[k]) return map[k];
+      // Sentence-case fallback: replace underscores with spaces, capitalize first letter.
+      const s = String(k).replaceAll("_", " ");
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    function hideHovercard() {
+      hovercard.style.display = "none";
+      hovercard.dataset.open = "false";
+    }
+
+    function positionHovercardNear(anchorEl) {
+      const pad = 10;
+      const rect = anchorEl.getBoundingClientRect();
+      const hcRect = hovercard.getBoundingClientRect();
+
+      // Prefer below-left, otherwise above-left.
+      let left = rect.left;
+      let top = rect.bottom + 8;
+
+      if (left + hcRect.width + pad > window.innerWidth) left = window.innerWidth - hcRect.width - pad;
+      if (left < pad) left = pad;
+
+      if (top + hcRect.height + pad > window.innerHeight) top = rect.top - hcRect.height - 8;
+      if (top < pad) top = pad;
+
+      hovercard.style.left = `${left}px`;
+      hovercard.style.top = `${top}px`;
+    }
+
+    function renderHovercardFromCapsule(capsuleObj) {
+      // Icon handling (optional): render only when icon_ref is a direct URL reference.
+      // Supported patterns (best-effort):
+      // - url:https://example.com/icon.svg
+      // - https://example.com/icon.svg   (also accepted)
+      const rawRef = capsuleObj.icon_ref && String(capsuleObj.icon_ref).trim();
+      let iconUrl = "";
+
+      if (rawRef) {
+        if (rawRef.toLowerCase().startsWith("url:")) {
+          iconUrl = rawRef.slice(4).trim();
+        } else if (isValidUrl(rawRef)) {
+          iconUrl = rawRef;
+        }
+      }
+
+      if (iconUrl && isValidUrl(iconUrl)) {
+        hcIcon.style.display = "flex";
+        hcImg.onload = () => { hcIcon.style.display = "flex"; };
+        hcImg.onerror = () => { hcIcon.style.display = "none"; };
+        hcImg.src = iconUrl;
+      } else {
+        hcIcon.style.display = "none";
+        hcImg.removeAttribute("src");
+      }
+
+      hcBody.innerHTML = "";
+
+      // Status indicator (optional)
+      const statusRaw = capsuleObj.status && String(capsuleObj.status).trim().toLowerCase();
+      if (statusRaw) {
+        const si = document.createElement("div");
+        si.className = "status-indicator";
+
+        if (statusRaw === "waiting") {
+          const sq = document.createElement("span");
+          sq.className = "status-dot dot-square";
+          sq.style.background = "#9aa0a6"; // gray
+          si.appendChild(sq);
+          const t = document.createElement("span");
+          t.textContent = "Waiting";
+          si.appendChild(t);
+        } else if (statusRaw === "active") {
+          const c = document.createElement("span");
+          c.className = "status-dot dot-circle";
+          c.style.background = "#1a73e8"; // blue
+          si.appendChild(c);
+          const t = document.createElement("span");
+          t.textContent = "Active";
+          si.appendChild(t);
+        } else if (statusRaw === "warning") {
+          const s = document.createElement("span");
+          s.className = "status-symbol";
+          s.textContent = "⚠️";
+          si.appendChild(s);
+          const t = document.createElement("span");
+          t.textContent = "Warning";
+          si.appendChild(t);
+        } else if (statusRaw === "error") {
+          const s = document.createElement("span");
+          s.className = "status-symbol";
+          s.textContent = "⛔";
+          si.appendChild(s);
+          const t = document.createElement("span");
+          t.textContent = "Error";
+          si.appendChild(t);
+        } else if (statusRaw === "success") {
+          const s = document.createElement("span");
+          s.className = "status-symbol";
+          s.textContent = "✅";
+          si.appendChild(s);
+          const t = document.createElement("span");
+          t.textContent = "Success";
+          si.appendChild(t);
+        } else {
+          const t = document.createElement("span");
+          t.textContent = "Status: " + String(capsuleObj.status);
+          si.appendChild(t);
+        }
+
+        hcBody.appendChild(si);
+      }
+
+      // Render all fields present
+      Object.keys(capsuleObj).forEach((k) => {
+        const v = capsuleObj[k];
+        const row = document.createElement("div");
+        row.className = "hc-kv";
+
+        const b = document.createElement("b");
+        b.textContent = labelForKey(k) + ": ";
+
+        const span = document.createElement("span");
+        span.textContent = v === null || v === undefined ? "" : String(v);
+
+        row.appendChild(b);
+        row.appendChild(span);
+        hcBody.appendChild(row);
+      });
+    }
+
+    function showHovercard(anchorEl) {
+      if (!isCapsuleEnabled()) return;
+      const enabled = document.getElementById("enableHovercard").checked;
+      if (!enabled) return;
+
+      const raw = anchorEl.getAttribute("data-smartlink");
+      if (!raw) return;
+
+      let obj = null;
+      try { obj = JSON.parse(raw); } catch { return; }
+
+      renderHovercardFromCapsule(obj);
+      hovercard.style.display = "block";
+      hovercard.dataset.open = "true";
+
+      // position after display so width/height are measurable
+      positionHovercardNear(anchorEl);
+    }
+
+    // Keep hovercard open when moving between link and card (simple approach)
+    let hoverCloseTimer = null;
+    function scheduleHideHovercard() {
+      clearTimeout(hoverCloseTimer);
+      hoverCloseTimer = setTimeout(() => hideHovercard(), 120);
+    }
+    function cancelHideHovercard() {
+      clearTimeout(hoverCloseTimer);
+    }
+
+    // ---------------- Wire up UI ----------------
+    ["url", "anchor", "context", "system", "type", "id", "status", "icon_ref"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", () => { updateUI(); hideHovercard(); });
+    });
+
+
+
+    // Level selector & copy toggle
+    document.querySelectorAll('input[name="slmLevel"]').forEach((r) => {
+      r.addEventListener("change", () => updateLevelUI());
+    });
+    document.getElementById("enableCopyAction").addEventListener("change", () => updateLevelUI());
+    document.getElementById("enableHovercard").addEventListener("change", () => {
+      hideHovercard();
+    });
 
     document.getElementById("copyBtn").addEventListener("click", async () => {
+      if (!isCopyEnabled()) return;
       try {
         const payloads = computeCurrentPayloadsOrNull();
-        if (!payloads) {
-          setStatus("Please enter a valid URL (including https://) and anchor text.", "err");
-          return;
-        }
+        if (!payloads) { setStatus("Please enter a valid URL (including https://) and anchor text.", "err"); return; }
         const result = await copySmartLinkMultiFormat({ plain: payloads.plain, html: payloads.html });
         setStatus(`Copied Smart Link (${result.mode}).`, result.mode.includes("multi-format") ? "ok" : "warn");
       } catch (e) {
@@ -345,13 +974,11 @@
 
     const slmRow = document.getElementById("slmRow");
     slmRow.addEventListener("contextmenu", (e) => {
+      if (!isCopyEnabled()) return;
       e.preventDefault();
       const payloads = computeCurrentPayloadsOrNull();
       lastPayloads = payloads;
-      if (!payloads) {
-        setStatus("Please enter a valid URL (including https://) and anchor text.", "err");
-        return;
-      }
+      if (!payloads) { setStatus("Please enter a valid URL (including https://) and anchor text.", "err"); return; }
       showMenuAt(e.clientX, e.clientY);
     });
 
@@ -361,61 +988,60 @@
         if (!lastPayloads) return;
         const result = await copySmartLinkMultiFormat({ plain: lastPayloads.plain, html: lastPayloads.html });
         setStatus(`Copied Smart Link (${result.mode}).`, result.mode.includes("multi-format") ? "ok" : "warn");
-      } catch (e) {
-        setStatus(`Copy failed: ${e?.message || String(e)}`, "err");
-      }
+      } catch (e) { setStatus(`Copy failed: ${e?.message || String(e)}`, "err"); }
     });
-
     document.getElementById("menuCopyPlain").addEventListener("click", async () => {
       try {
         hideMenu();
         if (!lastPayloads) return;
         const result = await copyPlainTextOnly(lastPayloads.plain);
         setStatus(`Copied anchor text, description, and URL (${result.mode}).`, "ok");
-      } catch (e) {
-        setStatus(`Copy failed: ${e?.message || String(e)}`, "err");
-      }
+      } catch (e) { setStatus(`Copy failed: ${e?.message || String(e)}`, "err"); }
     });
-
     document.getElementById("menuCopyId").addEventListener("click", async () => {
       try {
         hideMenu();
         if (!lastPayloads) return;
         const result = await copyPlainTextOnly(lastPayloads.anchor);
         setStatus(`Copied ID (${result.mode}).`, "ok");
-      } catch (e) {
-        setStatus(`Copy failed: ${e?.message || String(e)}`, "err");
-      }
+      } catch (e) { setStatus(`Copy failed: ${e?.message || String(e)}`, "err"); }
     });
-
     document.getElementById("menuCopyDesc").addEventListener("click", async () => {
       try {
         hideMenu();
         if (!lastPayloads) return;
-        const desc = lastPayloads.context || "";
-        const result = await copyPlainTextOnly(desc);
+        const result = await copyPlainTextOnly(lastPayloads.context || "");
         setStatus(`Copied description (${result.mode}).`, "ok");
-      } catch (e) {
-        setStatus(`Copy failed: ${e?.message || String(e)}`, "err");
-      }
+      } catch (e) { setStatus(`Copy failed: ${e?.message || String(e)}`, "err"); }
     });
-
     document.getElementById("menuCopyUrl").addEventListener("click", async () => {
       try {
         hideMenu();
         if (!lastPayloads) return;
         const result = await copyPlainTextOnly(lastPayloads.url);
         setStatus(`Copied URL (${result.mode}).`, "ok");
-      } catch (e) {
-        setStatus(`Copy failed: ${e?.message || String(e)}`, "err");
-      }
+      } catch (e) { setStatus(`Copy failed: ${e?.message || String(e)}`, "err"); }
     });
+
+    // Hovercard hover behaviors
+    const anchorEl = document.getElementById("slmAnchor");
+    anchorEl.addEventListener("mouseenter", () => { cancelHideHovercard(); showHovercard(anchorEl); });
+    anchorEl.addEventListener("mouseleave", () => { scheduleHideHovercard(); });
+    hovercard.addEventListener("mouseenter", () => { cancelHideHovercard(); });
+    hovercard.addEventListener("mouseleave", () => { scheduleHideHovercard(); });
 
     // Initial defaults
     document.getElementById("url").value = "https://example.com/workitems/2676014";
     document.getElementById("anchor").value = "Task 2676014";
     document.getElementById("context").value = "Create pipeline to fetch Helm chart and add it to git";
-    updateUI();
+    document.getElementById("system").value = "https://example.com/workitems/2676014";
+    document.getElementById("type").value = "azure-devops";
+    document.getElementById("id").value = "2676014";
+    document.getElementById("status").value = "active";
+    document.getElementById("icon_ref").value = "url:https://icons.veryicon.com/png/o/education-technology/big-data-ico-02/new-task.png";
+    // Optional fields left blank by default
+    updateLevelUI();
   </script>
 </body>
+
 </html>
